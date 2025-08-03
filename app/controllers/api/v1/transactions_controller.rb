@@ -24,13 +24,20 @@ class Api::V1::TransactionsController < ApplicationController
     user = User.find_or_create_by(telegram_id: params[:telegram_id])
     description = transaction_params[:description]
 
+      # If not, try to find a matching product
+    product = user.products.find_by('lower(name) = ?', description.downcase)
+
+    if product.blank? && transaction_params[:category_id].present?
+      Products::CreateProduct.call(user, {
+        name: description.downcase,
+        category_id: transaction_params[:category_id],
+      })  
+    end
+
     # If category_id is provided, create the transaction directly
     if transaction_params[:category_id].present?
       return create_transaction_with_category(user, transaction_params[:category_id])
     end
-
-    # If not, try to find a matching product
-    product = user.products.find_by('lower(name) = ?', description.downcase)
 
     if product
       # Category found via Product! Create the transaction.
@@ -65,16 +72,4 @@ class Api::V1::TransactionsController < ApplicationController
       :category_id,
     )
   end
-  # # This is a "strong params" method. It's a security feature to prevent
-  # # users from updating model fields they aren't supposed to.
-  # def transaction_params
-  #   params.require(:transaction).permit(
-  #     :description,
-  #     :amount,
-  #     :transaction_type,
-  #     :transaction_date,
-  #     :account_id,
-  #     :category_id
-  #   )
-  # end
 end
