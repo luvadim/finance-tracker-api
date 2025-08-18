@@ -23,7 +23,11 @@ class Api::V1::TransactionsController < ApplicationController
   def create
     user = User.find_or_create_by(telegram_id: params[:telegram_id])
     description = transaction_params[:description]
+    voice_url = params[:voice_url]
 
+    if voice_url.present?
+      transactions = Transactions::AudioProcessor.call(voice_url)
+    end
       # If not, try to find a matching product
     product = user.products.find_by('lower(name) = ?', description.downcase)
 
@@ -70,6 +74,8 @@ class Api::V1::TransactionsController < ApplicationController
       :transaction_date,
       :account_id,
       :category_id,
+      :voice_url,
+      :user_id,
     )
   end
 end

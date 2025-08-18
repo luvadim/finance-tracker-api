@@ -10,7 +10,11 @@ gem "pg", "~> 1.1"
 
 gem 'pry-rails'
 gem 'pry-byebug'
+gem 'ruby-openai'
 
+gem 'streamio-ffmpeg'
+
+gem 'down'
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma", ">= 5.0"
 
