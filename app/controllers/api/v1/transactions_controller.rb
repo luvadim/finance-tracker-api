@@ -24,35 +24,38 @@ class Api::V1::TransactionsController < ApplicationController
     user = User.find_or_create_by(telegram_id: params[:telegram_id])
     description = transaction_params[:description]
     voice_url = params[:voice_url]
-
     if voice_url.present?
-      transactions = Transactions::AudioProcessor.call(voice_url)
-    end
-      # If not, try to find a matching product
-    product = user.products.find_by('lower(name) = ?', description.downcase)
+      processed_transactions = Transactions::ProcessVoiceMessage.call(voice_url, user, transaction_params)
 
-    if product.blank? && transaction_params[:category_id].present?
-      Products::CreateProduct.call(user, {
-        name: description.downcase,
-        category_id: transaction_params[:category_id],
-      })  
-    end
-
-    # If category_id is provided, create the transaction directly
-    if transaction_params[:category_id].present?
-      return create_transaction_with_category(user, transaction_params[:category_id])
-    end
-
-    if product
-      # Category found via Product! Create the transaction.
-      create_transaction_with_category(user, product.category_id)
+      render json: processed_transactions, status: :created
     else
-      # Category not found. Respond with a special status to tell the bot to ask the user.
-      render json: { status: 'category_required' }, status: :not_found
+      # If not, try to find a matching product
+      product = user.products.find_by('lower(name) = ?', description.downcase)
+
+      if product.blank? && transaction_params[:category_id].present?
+        Products::CreateProduct.call(user, {
+          name: description.downcase,
+          category_id: transaction_params[:category_id],
+        })  
+      end
+
+      # If category_id is provided, create the transaction directly
+      if transaction_params[:category_id].present?
+        return create_transaction_with_category(user, transaction_params[:category_id])
+      end
+
+      if product
+        # Category found via Product! Create the transaction.
+        create_transaction_with_category(user, product.category_id)
+      else
+        # Category not found. Respond with a special status to tell the bot to ask the user.
+        render json: { status: 'category_required' }, status: :not_found
+      end
     end
   end
 
   private
+
   def create_transaction_with_category(user, category_id)
     # Merge the found or provided category_id into the params
     full_params = transaction_params.merge(category_id: category_id)

@@ -1,9 +1,5 @@
 module Products
   class CreateProduct < BaseService
-    # def self.call(user, product_params)
-    #   new(user, product_params).call
-    # end
-
     def initialize(user, product_params)
       @user = user
       @product_params = product_params
