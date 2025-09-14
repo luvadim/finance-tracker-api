@@ -3,8 +3,9 @@ require 'streamio-ffmpeg'
 
 module Transactions
   class AudioProcessor < BaseService
-    def initialize(voice_url)
+    def initialize(voice_url, transcribe_service = OpenAi::Transcribe)
       @voice_url = voice_url
+      @transcribe_service = transcribe_service
     end
 
     def call
@@ -15,7 +16,7 @@ module Transactions
 
       if output_file
         # Use OpenAI's Whisper API to transcribe the audio file
-        OpenAi::Transcribe.call(output_file)
+        @transcribe_service.call(output_file)
       end
     end
   end

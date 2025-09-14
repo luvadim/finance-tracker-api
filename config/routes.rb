@@ -7,6 +7,8 @@ Rails.application.routes.draw do
       resources :accounts, only: [:index, :create]
       resources :categories, only: [:index, :create]
       resources :products, only: [:index, :create]
+      
+      put 'users/set_current_account', to: 'users#set_current_account'
     end
   end
 end

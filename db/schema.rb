@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_06_29_125058) do
+ActiveRecord::Schema[7.1].define(version: 2025_09_13_190440) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -63,6 +63,8 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_29_125058) do
     t.string "telegram_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "current_account_id"
+    t.index ["current_account_id"], name: "index_users_on_current_account_id"
     t.index ["telegram_id"], name: "index_users_on_telegram_id", unique: true
   end
 
@@ -73,4 +75,5 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_29_125058) do
   add_foreign_key "transactions", "accounts"
   add_foreign_key "transactions", "categories"
   add_foreign_key "transactions", "users"
+  add_foreign_key "users", "accounts", column: "current_account_id"
 end

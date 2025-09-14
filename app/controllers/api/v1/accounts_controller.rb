@@ -25,7 +25,6 @@ class Api::V1::AccountsController < ApplicationController
   def create
     # Find the user by the ID the bot sent. If they don't exist, create them.
     user = User.find_or_create_by(telegram_id: params[:telegram_id])
-
     # Build the account belonging to that specific user.
     account = user.accounts.build(account_params)
 
