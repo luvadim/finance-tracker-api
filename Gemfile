@@ -7,9 +7,6 @@ gem "rails", "~> 7.1.5", ">= 7.1.5.1"
 
 # Use postgresql as the database for Active Record
 gem "pg", "~> 1.1"
-
-gem 'pry-rails'
-gem 'pry-byebug'
 gem 'ruby-openai'
 
 gem 'streamio-ffmpeg'
@@ -45,6 +42,9 @@ gem "bootsnap", require: false
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ]
+  gem 'annotate'
+  gem 'pry-rails'
+  gem 'pry-byebug'
 end
 
 group :development do

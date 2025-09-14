@@ -18,3 +18,24 @@ class Account < ApplicationRecord
     user.update(current_account_id: id)
   end
 end
+
+# == Schema Information
+#
+# Table name: accounts
+#
+#  id           :bigint           not null, primary key
+#  account_type :string
+#  balance      :decimal(, )
+#  name         :string
+#  created_at   :datetime         not null
+#  updated_at   :datetime         not null
+#  user_id      :bigint           not null
+#
+# Indexes
+#
+#  index_accounts_on_user_id  (user_id)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (user_id => users.id)
+#
