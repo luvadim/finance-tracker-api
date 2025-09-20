@@ -10,8 +10,11 @@ class Api::V1::TransactionsController < ApplicationController
 
     if user
       # Scoping to the user is crucial for security and correctness
-      transactions = user.transactions.order(transaction_date: :desc)
-      render json: transactions, status: :ok
+      transactions = user.transactions
+      if params[:start_date].present? && params[:end_date].present?
+        transactions = transactions.where(transaction_date: params[:start_date]..params[:end_date])
+      end
+      render json: transactions.order(transaction_date: :desc), status: :ok
     else
       # If the user doesn't exist, return an empty array.
       render json: [], status: :ok

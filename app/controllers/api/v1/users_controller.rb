@@ -11,6 +11,16 @@ class Api::V1::UsersController < ApplicationController
     end
   end
 
+  def index
+    user = User.find_by(telegram_id: params[:telegram_id])
+    if user
+      render json: user, status: :ok
+    else
+      render json: { error: "User not found." }, status: :not_found
+    end
+    
+  end
+
   private
 
   # Strong Parameters for security.

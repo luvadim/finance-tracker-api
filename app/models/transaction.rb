@@ -2,6 +2,29 @@ class Transaction < ApplicationRecord
   belongs_to :account
   belongs_to :category
   belongs_to :user
+
+  after_create :update_account_balance
+  after_destroy :revert_account_balance
+  validates :amount, numericality: { greater_than: 0 }
+  validates :transaction_type, inclusion: { in: %w[income expense] }
+
+  private
+
+  def update_account_balance
+    if transaction_type == 'income'
+      account.increment!(:balance, amount)
+    elsif transaction_type == 'expense'
+      account.decrement!(:balance, amount)
+    end
+  end
+
+  def revert_account_balance
+    if transaction_type == 'income'
+      account.decrement!(:balance, amount)
+    elsif transaction_type == 'expense'
+      account.increment!(:balance, amount)
+    end
+  end
 end
 
 # == Schema Information
