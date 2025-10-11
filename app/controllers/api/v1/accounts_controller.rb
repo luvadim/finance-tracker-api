@@ -25,6 +25,10 @@ class Api::V1::AccountsController < ApplicationController
   def create
     # Find the user by the ID the bot sent. If they don't exist, create them.
     user = User.find_or_create_by(telegram_id: params[:telegram_id])
+    # Prevent duplicate accounts with the same name and type for the user
+    if user.accounts.exists?(name: params[:name], account_type: params[:account_type])
+      return render json: { error: 'Account already exists.' }, status: :unprocessable_entity
+    end
     # Build the account belonging to that specific user.
     account = user.accounts.build(account_params)
 
