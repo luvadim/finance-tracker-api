@@ -3,6 +3,7 @@ Rails.application.routes.draw do
     namespace :v1 do
       # get 'products/index'
       # get 'products/create'
+      resources :planned_transactions, only: [:index, :show, :create, :update, :destroy]
       resources :transactions, only: [:index, :create]
       resources :accounts, only: [:index, :create]
       resources :categories, only: [:index, :create]

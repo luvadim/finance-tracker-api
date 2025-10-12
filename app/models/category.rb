@@ -1,6 +1,7 @@
 class Category < ApplicationRecord
   belongs_to :user
   has_many :transactions, dependent: :destroy
+  has_many :planned_transactions, dependent: :destroy
   has_many :products, dependent: :destroy
 
   validates :category_type, inclusion: { in: %w[income expense] }
