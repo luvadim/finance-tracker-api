@@ -118,6 +118,8 @@ GEM
       activesupport (>= 6.1)
     i18n (1.14.7)
       concurrent-ruby (~> 1.0)
+    interactor (3.2.0)
+      ostruct
     io-console (0.8.0)
     irb (1.15.2)
       pp (>= 0.6.0)
@@ -159,6 +161,7 @@ GEM
       racc (~> 1.4)
     nokogiri (1.18.8-x86_64-linux-gnu)
       racc (~> 1.4)
+    ostruct (0.6.3)
     pg (1.5.9)
     pp (0.6.2)
       prettyprint
@@ -251,6 +254,7 @@ DEPENDENCIES
   debug
   down
   faker
+  interactor (~> 3.0)
   pg (~> 1.1)
   pry-byebug
   pry-rails

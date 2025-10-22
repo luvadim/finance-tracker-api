@@ -1,87 +1,56 @@
 class Api::V1::TransactionsController < ApplicationController
-  # We don't need `before_action :authenticate_user!` because our
-  # ApplicationController is already checking for the bot's secret API key.
+  # Use a before_action to find the user for all actions, keeping your code DRY.
+  before_action :set_user
 
   # GET /api/v1/transactions
-  # The bot must include the telegram_id in the request's query params
-  # Example request from the bot: GET /api/v1/transactions?telegram_id=12345
   def index
-    user = User.find_by(telegram_id: params[:telegram_id])
+    transactions = @user.transactions.by_date_range(params[:start_date], params[:end_date])
 
-    if user
-      # Scoping to the user is crucial for security and correctness
-      transactions = user.transactions
-      if params[:start_date].present? && params[:end_date].present?
-        transactions = transactions.where(transaction_date: params[:start_date]..params[:end_date])
-      end
-      render json: transactions.order(transaction_date: :desc), status: :ok
-    else
-      # If the user doesn't exist, return an empty array.
-      render json: [], status: :ok
-    end
+    render json: transactions.order(transaction_date: :desc), status: :ok
   end
 
   # POST /api/v1/transactions
-  # The bot must send the telegram_id and transaction data in the JSON body.
   def create
-    user = User.find_or_create_by(telegram_id: params[:telegram_id])
-    description = transaction_params[:description]
-    voice_url = params[:voice_url]
-    if voice_url.present?
-      processed_transactions = Transactions::ProcessVoiceMessage.call(voice_url, user, transaction_params)
+    if params[:voice_url].present?
+      processed_transactions = Transactions::ProcessVoiceMessage.call(params[:voice_url], @user, transaction_params)
 
       render json: processed_transactions, status: :created
     else
-      # If not, try to find a matching product
-      product = user.products.find_by('lower(name) = ?', description.downcase)
+      result = Transactions::CreateFromParams.call(@user, transaction_params)
 
-      if product.blank? && transaction_params[:category_id].present?
-        Products::CreateProduct.call(user, {
-          name: description.downcase,
-          category_id: transaction_params[:category_id],
-        })  
-      end
-
-      # If category_id is provided, create the transaction directly
-      if transaction_params[:category_id].present?
-        return create_transaction_with_category(user, transaction_params[:category_id])
-      end
-
-      if product
-        # Category found via Product! Create the transaction.
-        create_transaction_with_category(user, product.category_id)
-      else
-        # Category not found. Respond with a special status to tell the bot to ask the user.
+      # The service object's result tells us what response to render.
+      if result.success?
+        render json: result.transaction, status: :created
+      elsif result.category_required?
         render json: { status: 'category_required' }, status: :not_found
+      else
+        render json: { errors: result.errors }, status: :unprocessable_entity
       end
     end
   end
 
   private
 
-  def create_transaction_with_category(user, category_id)
-    # Merge the found or provided category_id into the params
-    full_params = transaction_params.merge(category_id: category_id)
-    transaction = user.transactions.build(full_params)
+  def set_user
+    # For `create`, we find or create the user. For `index`, we only find.
+    @user = if action_name == 'create'
+              User.find_or_create_by!(telegram_id: params[:telegram_id])
+            else
+              User.find_by(telegram_id: params[:telegram_id])
+            end
 
-    if transaction.save
-      render json: transaction, status: :created
-    else
-      render json: { errors: transaction.errors.full_messages }, status: :unprocessable_entity
-    end
+    # If user isn't found for index, render a clear error.
+    render json: { error: 'User not found' }, status: :not_found unless @user
   end
 
   def transaction_params
-    # Make category_id optional in the initial request
     params.require(:transaction).permit(
       :description,
       :amount,
       :transaction_type,
       :transaction_date,
       :account_id,
-      :category_id,
-      :voice_url,
-      :user_id,
+      :category_id # It's okay for this to be nil initially
     )
   end
 end

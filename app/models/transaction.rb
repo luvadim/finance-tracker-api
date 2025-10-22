@@ -8,6 +8,10 @@ class Transaction < ApplicationRecord
   validates :amount, numericality: { greater_than: 0 }
   validates :transaction_type, inclusion: { in: %w[income expense] }
 
+  scope :by_date_range, ->(start_date, end_date) {
+    where(transaction_date: start_date..end_date) if start_date.present? && end_date.present?
+  }
+
   private
 
   def update_account_balance
